@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emotion Hero Mission</title>
+
+<style>
+*{
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+margin:0;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:15px;
+}
+
+.game{
+width:100%;
+max-width:900px;
+background:white;
+border-radius:20px;
+padding:20px;
+box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+h1,h2{
+text-align:center;
+}
+
+.progress{
+height:20px;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin-bottom:20px;
+}
+
+.bar{
+height:100%;
+width:0%;
+background:#2ecc71;
+transition:.3s;
+}
+
+.question{
+font-size:1.5rem;
+margin-bottom:20px;
+text-align:center;
+}
+
+.answers{
+display:grid;
+grid-template-columns:1fr;
+gap:12px;
+}
+
+.card{
+background:#f4f6f8;
+padding:18px;
+border-radius:15px;
+font-size:1.2rem;
+text-align:center;
+cursor:pointer;
+border:3px solid transparent;
+}
+
+.card:hover{
+background:#e9f5ff;
+}
+
+.selected{
+border-color:#3498db;
+}
+
+.correct{
+background:#2ecc71 !important;
+color:white;
+}
+
+.wrong{
+background:#e74c3c !important;
+color:white;
+}
+
+.feedback{
+text-align:center;
+font-size:1.3rem;
+margin:15px 0;
+font-weight:bold;
+}
+
+.nextBtn{
+display:none;
+width:100%;
+padding:16px;
+font-size:1.2rem;
+border:none;
+border-radius:15px;
+background:#3498db;
+color:white;
+}
+
+.score{
+text-align:center;
+font-weight:bold;
+font-size:1.2rem;
+margin-bottom:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+<h1>🦸 Emotion Hero Mission</h1>
+
+<div class="score">
+Score: <span id="score">0</span>
+</div>
+
+<div class="progress">
+<div class="bar" id="bar"></div>
+</div>
+
+<h2 id="level"></h2>
+
+<div class="question" id="question"></div>
+
+<div class="answers" id="answers"></div>
+
+<div class="feedback" id="feedback"></div>
+
+<button class="nextBtn" id="nextBtn">
+Next Level ➜
+</button>
+
+</div>
+
+<script>
+
+let score=0;
+let current=0;
+
+const questions=[
+
+{
+level:"Level 1",
+question:"Fiona got a poor test result. How does she feel?",
+type:"single",
+answers:["Happy","Worried","Relaxed","Excited"],
+correct:[1]
+},
+
+{
+level:"Level 2",
+question:"Which emoji shows RELIEVED?",
+type:"single",
+answers:["😡 Angry","😰 Scared","😌 Relieved","😭 Sad"],
+correct:[2]
+},
+
+{
+level:"Level 3",
+question:"Tap ALL sources of stress.",
+type:"multi",
+answers:["🏠 Family","🏫 School","👫 Friends","🍦 Ice Cream"],
+correct:[0,1,2]
+},
+
+{
+level:"Level 4",
+question:"Moderate stress can help us work harder.",
+type:"single",
+answers:["🟢 Good Stress","🔴 Bad Stress"],
+correct:[0]
+},
+
+{
+level:"Level 5",
+question:"Which is a physical sign of stress?",
+type:"single",
+answers:[
+"🤕 Headache",
+"😠 Bad temper",
+"🙊 Unwilling to speak",
+"😐 No interest"
+],
+correct:[0]
+},
+
+{
+level:"Level 6",
+question:"Tap ALL physical responses.",
+type:"multi",
+answers:[
+"🤕 Headache",
+"💓 Fast heartbeat",
+"🤢 Stomach ache",
+"😴 Poor sleep",
+"😠 Bad temper"
+],
+correct:[0,1,2,3]
+},
+
+{
+level:"Level 7",
+question:"Robot says: 'Everybody should hide stress.'",
+type:"single",
+answers:[
+"Tell trusted adults",
+"Keep it secret",
+"Ignore it",
+"Run away"
+],
+correct:[0]
+},
+
+{
+level:"Boss Battle",
+question:"Posting hurtful messages online is...",
+type:"single",
+answers:[
+"Cyberbullying",
+"Isolation",
+"Physical abuse",
+"Friendship"
+],
+correct:[0]
+},
+
+{
+level:"Boss Battle",
+question:"What should a victim do? Tap ALL.",
+type:"multi",
+answers:[
+"Say No",
+"Leave the scene",
+"Seek help",
+"Join the fight"
+],
+correct:[0,1,2]
+},
+
+{
+level:"Final Challenge",
+question:"Teachers can help students deal with stress.",
+type:"single",
+answers:[
+"✅ True",
+"❌ False"
+],
+correct:[0]
+}
+
+];
+
+function loadQuestion(){
+
+if(current>=questions.length){
+
+document.querySelector(".game").innerHTML=
+`
+<h1>🏆 Mission Complete!</h1>
+
+<h2>Your Score: ${score}</h2>
+
+<h2>${
+score>=80
+?'🌟 Emotion Master'
+:score>=50
+?'⭐ Emotion Hero'
+:'😊 Emotion Explorer'
+}</h2>
+
+<button onclick="location.reload()"
+style="
+padding:20px;
+font-size:20px;
+width:100%;
+border:none;
+background:#3498db;
+color:white;
+border-radius:15px;
+">
+Play Again
+</button>
+`;
+
+return;
+}
+
+const q=questions[current];
+
+document.getElementById("level").innerText=q.level;
+
+document.getElementById("question").innerText=q.question;
+
+document.getElementById("feedback").innerText="";
+
+document.getElementById("nextBtn").style.display="none";
+
+const container=document.getElementById("answers");
+container.innerHTML="";
+
+let selected=[];
+
+q.answers.forEach((ans,index)=>{
+
+const card=document.createElement("div");
+card.className="card";
+card.innerHTML=ans;
+
+card.onclick=()=>{
+
+if(q.type==="single"){
+
+container.querySelectorAll(".card")
+.forEach(c=>c.style.pointerEvents="none");
+
+if(q.correct.includes(index)){
+
+card.classList.add("correct");
+score+=10;
+document.getElementById("feedback")
+.innerText="✅ Great Job!";
+}
+else{
+
+card.classList.add("wrong");
+
+q.correct.forEach(c=>{
+container.children[c]
+.classList.add("correct");
+});
+
+document.getElementById("feedback")
+.innerText="❌ Try to remember!";
+}
+
+document.getElementById("score")
+.innerText=score;
+
+document.getElementById("nextBtn")
+.style.display="block";
+
+}
+
+else{
+
+card.classList.toggle("selected");
+
+if(selected.includes(index)){
+selected=selected.filter(i=>i!=index);
+}
+else{
+selected.push(index);
+}
+
+if(selected.length===q.correct.length){
+
+let correct=
+JSON.stringify([...selected].sort())===
+JSON.stringify([...q.correct].sort());
+
+container.querySelectorAll(".card")
+.forEach(c=>c.style.pointerEvents="none");
+
+if(correct){
+
+score+=10;
+
+selected.forEach(i=>{
+container.children[i]
+.classList.add("correct");
+});
+
+document.getElementById("feedback")
+.innerText="✅ Excellent!";
+}
+else{
+
+selected.forEach(i=>{
+container.children[i]
+.classList.add("wrong");
+});
+
+q.correct.forEach(i=>{
+container.children[i]
+.classList.add("correct");
+});
+
+document.getElementById("feedback")
+.innerText="❌ Not quite.";
+}
+
+document.getElementById("score")
+.innerText=score;
+
+document.getElementById("nextBtn")
+.style.display="block";
+}
+}
+};
+
+container.appendChild(card);
+});
+
+document.getElementById("bar").style.width=
+((current)/questions.length)*100+"%";
+}
+
+document.getElementById("nextBtn")
+.onclick=()=>{
+
+current++;
+
+document.getElementById("bar").style.width=
+((current)/questions.length)*100+"%";
+
+loadQuestion();
+};
+
+loadQuestion();
+
+</script>
+
+</body>
+</html>
